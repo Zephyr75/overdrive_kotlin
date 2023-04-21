@@ -3,14 +3,146 @@
  */
 package overdrive
 
-class App {
-    val greeting: String
-        get() {
-            return "Hello World!"
-        }
+import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GL33.*
+import org.lwjgl.system.MemoryUtil.NULL
+
+fun framebufferSizeCallback(window: Long, width: Int, height: Int) {
+    glViewport(0, 0, width, height)
 }
 
+fun processInput(window: Long) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, true)
+    }
+}
+
+// settings
+const val SCR_WIDTH = 800
+const val SCR_HEIGHT = 600
+
+const val vertexShaderSource = "#version 330 core\n" +
+        "layout (location = 0) in vec3 aPos;\n" +
+        "void main()\n" +
+        "{\n" +
+        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n" +
+        "}"
+const val fragmentShaderSource = "#version 330 core\n" +
+        "out vec4 FragColor;\n" +
+        "void main()\n" +
+        "{\n" +
+        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n" +
+        "}\n"
+
 fun main() {
-    val engine = Engine()
-    engine.run()
+    // glfw: initialize and configure
+    // ------------------------------
+    glfwInit()
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+
+    // glfw window creation
+    // --------------------
+    val window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL)
+    if (window == NULL) {
+        System.err.println("Failed to create GLFW window")
+        glfwTerminate()
+        return
+    }
+    glfwMakeContextCurrent(window)
+    glfwSetFramebufferSizeCallback(window) { _, width, height -> framebufferSizeCallback(window, width, height) }
+
+    // glad: load all OpenGL function pointers
+    // ---------------------------------------
+    GL.createCapabilities()
+
+    // build and compile our shader program
+    // ------------------------------------
+    // vertex shader
+    val vertexShader = glCreateShader(GL_VERTEX_SHADER)
+    glShaderSource(vertexShader, vertexShaderSource)
+    glCompileShader(vertexShader)
+    // check for shader compile errors
+    if (glGetShaderi(vertexShader, GL_COMPILE_STATUS) != GL_TRUE) {
+        System.err.println("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" + glGetShaderInfoLog(vertexShader))
+    }
+    // fragment shader
+    val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
+    glShaderSource(fragmentShader, fragmentShaderSource)
+    glCompileShader(fragmentShader)
+    // check for shader compile errors
+    if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) != GL_TRUE) {
+        System.err.println("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" + glGetShaderInfoLog(fragmentShader))
+    }
+    // link shaders
+    val shaderProgram = glCreateProgram()
+    glAttachShader(shaderProgram, vertexShader)
+    glAttachShader(shaderProgram, fragmentShader)
+    glLinkProgram(shaderProgram)
+    // check for linking errors
+    if (glGetProgrami(shaderProgram, GL_LINK_STATUS) != GL_TRUE) {
+        System.err.println("ERROR::SHADER::PROGRAM::LINKING_FAILED\n" + glGetProgramInfoLog(shaderProgram))
+    }
+    glDeleteShader(vertexShader)
+    glDeleteShader(fragmentShader)
+
+    // Set up vertex data and buffer(s)
+    val vertices = floatArrayOf(
+        // Positions         // Colors
+        0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,  // Bottom Right
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom Left
+        0.0f, 0.5f, 0.0f,    0.0f, 0.0f, 1.0f   // Top
+    )
+
+    val VBO = glGenBuffers()
+    val VAO = glGenVertexArrays()
+
+    glBindVertexArray(VAO)
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO)
+    glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+
+    // Configure vertex attributes
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * 4, 0)
+    glEnableVertexAttribArray(0)
+
+    // Unbind VAO and VBO
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    glBindVertexArray(0)
+
+    // render loop
+    // -----------
+    while (!glfwWindowShouldClose(window))
+    {
+        // input
+        // -----
+        processInput(window);
+
+        // render
+        // ------
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // draw our first triangle
+        glUseProgram(shaderProgram);
+        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+        // -------------------------------------------------------------------------------
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    // optional: de-allocate all resources once they've outlived their purpose:
+    // ------------------------------------------------------------------------
+    // glDeleteVertexArrays(1, &VAO);
+    // glDeleteBuffers(1, &VBO);
+    // glDeleteProgram(shaderProgram);
+
+    // glfw: terminate, clearing all previously allocated GLFW resources.
+    // ------------------------------------------------------------------
+    glfwTerminate();
 }
