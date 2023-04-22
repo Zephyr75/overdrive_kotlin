@@ -7,6 +7,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil.NULL
+import overdrive.Shader.*
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 fun processInput(window: Long) {
