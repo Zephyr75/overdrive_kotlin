@@ -35,6 +35,8 @@ fun main(args: Array<String>) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+
+    // fix compilation on macOS
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
 
     val window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL)
@@ -49,66 +51,14 @@ fun main(args: Array<String>) {
 
     GL.createCapabilities()
 
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
-    val vertexShader = glCreateShader(GL_VERTEX_SHADER)
-    val vertexShaderSource = """
-        #version 330 core
-        layout (location = 0) in vec3 aPos;
-        void main()
-        {
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-        }
-        """.trimIndent()
-    glShaderSource(vertexShader, vertexShaderSource)
-    glCompileShader(vertexShader)
-    // check for shader compile errors
-    var success = glGetShaderi(vertexShader, GL_COMPILE_STATUS)
-    if (success == GL_FALSE) {
-        val log = glGetShaderInfoLog(vertexShader)
-        throw RuntimeException("Vertex shader compilation failed:\n$log")
-    }
-
-    // fragment shader
-    val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-    val fragmentShaderSource = """
-        #version 330 core
-        out vec4 FragColor;
-        void main()
-        {
-            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-        }
-        """.trimIndent()
-    glShaderSource(fragmentShader, fragmentShaderSource)
-    glCompileShader(fragmentShader)
-    // check for shader compile errors
-    success = glGetShaderi(fragmentShader, GL_COMPILE_STATUS)
-    if (success == GL_FALSE) {
-        val log = glGetShaderInfoLog(fragmentShader)
-        throw RuntimeException("Fragment shader compilation failed:\n$log")
-    }
-
-    // link shaders
-    val shaderProgram = glCreateProgram()
-    glAttachShader(shaderProgram, vertexShader)
-    glAttachShader(shaderProgram, fragmentShader)
-    glLinkProgram(shaderProgram)
-    // check for linking errors
-    success = glGetProgrami(shaderProgram, GL_LINK_STATUS)
-    if (success == GL_FALSE) {
-        val log = glGetProgramInfoLog(shaderProgram)
-        throw RuntimeException("Shader program linking failed:\n$log")
-    }
-    glDeleteShader(vertexShader)
-    glDeleteShader(fragmentShader)
+    val shaderProgram = Shader("src/main/resources/shaders/simple.vert.glsl", "src/main/resources/shaders/simple.frag.glsl") 
 
     // Set up vertex data and buffer(s)
     val vertices = floatArrayOf(
-        -0.5f,  0.5f, 0.0f, // top left
-        0.5f,  0.5f, 0.0f, // top right
-        0.5f, -0.5f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f  // bottom left
+        -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top left
+        0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // top right
+        0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom left
     )
     val indices = intArrayOf(
         0, 1, 2, // first triangle
@@ -128,8 +78,11 @@ fun main(args: Array<String>) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
     // Configure vertex attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * 4, 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * 4, 0)
     glEnableVertexAttribArray(0)
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * 4, 12)
+    glEnableVertexAttribArray(1)
 
     // render loop
     // -----------
@@ -145,7 +98,7 @@ fun main(args: Array<String>) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw our first triangle
-        glUseProgram(shaderProgram);
+        shaderProgram.use()
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
