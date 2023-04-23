@@ -235,9 +235,23 @@ Full process example:
     }
     stbi_image_free(data);
 
+Texture unit = texture location used to assign multiple textures at once in a fragment shader
 
+    glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
+    glBindTexture(GL_TEXTURE_2D, texture);
 
+Adapted shader code:
 
+    #version 330 core
+    ...
+
+    uniform sampler2D texture1;
+    uniform sampler2D texture2;
+
+    void main()
+    {
+        FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
+    }
 
 
 
