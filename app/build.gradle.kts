@@ -116,6 +116,8 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-xxhash", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-yoga", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-zstd", classifier = lwjglNatives)
+
+    implementation("org.joml:joml:1.10.5")
 }
 
 application {

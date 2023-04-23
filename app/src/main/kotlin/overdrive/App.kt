@@ -7,7 +7,9 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.MemoryUtil.NULL
+import org.lwjgl.BufferUtils
 import org.lwjgl.stb.*
+import org.joml.*
 import overdrive.Shader.*
 
 
@@ -148,8 +150,17 @@ fun main(args: Array<String>) {
         glActiveTexture(GL_TEXTURE1)
         glBindTexture(GL_TEXTURE_2D, texture2)
 
-        // draw our first triangle
+        // create transformations
+        val trans = Matrix4f().identity()
+        trans.translate(Vector3f(0.5f, -0.5f, 0.0f))
+        val angle = glfwGetTime().toFloat()
+        trans.rotate(angle, Vector3f(0.0f, 0.0f, 1.0f))
+
         shaderProgram.use()
+        val transformLoc = glGetUniformLocation(shaderProgram.ID, "transform")
+        glUniformMatrix4fv(transformLoc, false, trans.get(BufferUtils.createFloatBuffer(16)))
+
+        // draw our first triangle
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
