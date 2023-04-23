@@ -11,6 +11,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.stb.*
 import org.joml.*
 import overdrive.Shader.*
+import java.util.Vector
 
 
 const val FLOAT_SIZE = 4
@@ -54,20 +55,72 @@ fun main(args: Array<String>) {
 
     GL.createCapabilities()
 
+    glEnable(GL_DEPTH_TEST);
+
     // build and compile our shader program
     val shaderProgram = Shader("src/main/resources/shaders/simple.vert.glsl", "src/main/resources/shaders/simple.frag.glsl") 
 
     // set up vertex data
     val vertices = floatArrayOf(
         // positions        // colors         // texture coords
-         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top left
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // top right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, // bottom left
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
     )
     val indices = intArrayOf(
         0, 1, 2, // first triangle
         2, 3, 0  // second triangle
+    )
+
+    val cubePositions = arrayOf(
+        Vector3f( 0.0f,  0.0f,  0.0f),
+        Vector3f( 2.0f,  5.0f, -15.0f),
+        Vector3f(-1.5f, -2.2f, -2.5f),
+        Vector3f(-3.8f, -2.0f, -12.3f),
+        Vector3f( 2.4f, -0.4f, -3.5f),
+        Vector3f(-1.7f,  3.0f, -7.5f),
+        Vector3f( 1.3f, -2.0f, -2.5f),
+        Vector3f( 1.5f,  2.0f, -2.5f),
+        Vector3f( 1.5f,  0.2f, -1.5f),
+        Vector3f(-1.3f,  1.0f, -1.5f),
     )
 
     // set up vertex buffers and configure vertex attributes
@@ -78,19 +131,19 @@ fun main(args: Array<String>) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
     glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-    val ebo = glGenBuffers()
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
+    // val ebo = glGenBuffers()
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
     // configure vertex attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * FLOAT_SIZE, 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * FLOAT_SIZE, 0)
     glEnableVertexAttribArray(0)
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * FLOAT_SIZE, 12)
+    glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * FLOAT_SIZE, 12)
     glEnableVertexAttribArray(1)
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * FLOAT_SIZE, 24)
-    glEnableVertexAttribArray(2)
+    // glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * FLOAT_SIZE, 24)
+    // glEnableVertexAttribArray(2)
 
     // load and create a texture
     val texture1 = glGenTextures()
@@ -142,7 +195,7 @@ fun main(args: Array<String>) {
 
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0)
@@ -154,10 +207,10 @@ fun main(args: Array<String>) {
         shaderProgram.use()
 
         // create transformations
-        val model = Matrix4f().identity()
+        // val model = Matrix4f().identity()
         val view = Matrix4f().identity()
         val projection = Matrix4f().identity()
-        model.rotate(-Math.toRadians(55.0f).toFloat(), Vector3f(1.0f, 0.0f, 0.0f))
+        // model.rotate(-Math.toRadians(55.0f).toFloat(), Vector3f(1.0f, 0.0f, 0.0f))
         view.translate(Vector3f(0.0f, 0.0f, -3.0f))
         projection.perspective(Math.toRadians(45.0f).toFloat(), 800.0f / 600.0f, 0.1f, 100.0f)
         
@@ -165,13 +218,32 @@ fun main(args: Array<String>) {
         val viewLoc = glGetUniformLocation(shaderProgram.ID, "view")
         val projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection")
 
-        glUniformMatrix4fv(modelLoc, false, model.get(BufferUtils.createFloatBuffer(16)))
+        // glUniformMatrix4fv(modelLoc, false, model.get(BufferUtils.createFloatBuffer(16)))
         glUniformMatrix4fv(viewLoc, false, view.get(BufferUtils.createFloatBuffer(16)))
         glUniformMatrix4fv(projectionLoc, false, projection.get(BufferUtils.createFloatBuffer(16)))
 
-        // draw our first triangle
-        glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        // render boxes
+        glBindVertexArray(vao)
+        for (i in 0 until 10)
+        {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            val model = Matrix4f().identity()
+            model.translate(cubePositions[i])
+            val angle = 20.0f * i
+            model.rotate(Math.toRadians(angle.toDouble()).toFloat(), Vector3f(1.0f, 0.3f, 0.5f))
+            glUniformMatrix4fv(modelLoc, false, model.get(BufferUtils.createFloatBuffer(16)))
+
+            glDrawArrays(GL_TRIANGLES, 0, 36)
+        }
+
+
+
+
+        // // draw our first triangle
+        // glBindVertexArray(vao);
+        // // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // swap buffers and poll IO events
         glfwSwapBuffers(window);
