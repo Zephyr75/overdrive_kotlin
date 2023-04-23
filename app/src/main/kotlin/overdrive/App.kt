@@ -149,16 +149,25 @@ fun main(args: Array<String>) {
         glBindTexture(GL_TEXTURE_2D, texture1)
         glActiveTexture(GL_TEXTURE1)
         glBindTexture(GL_TEXTURE_2D, texture2)
+        
+        // activate shader
+        shaderProgram.use()
 
         // create transformations
-        val trans = Matrix4f().identity()
-        trans.translate(Vector3f(0.5f, -0.5f, 0.0f))
-        val angle = glfwGetTime().toFloat()
-        trans.rotate(angle, Vector3f(0.0f, 0.0f, 1.0f))
+        val model = Matrix4f().identity()
+        val view = Matrix4f().identity()
+        val projection = Matrix4f().identity()
+        model.rotate(-Math.toRadians(55.0f).toFloat(), Vector3f(1.0f, 0.0f, 0.0f))
+        view.translate(Vector3f(0.0f, 0.0f, -3.0f))
+        projection.perspective(Math.toRadians(45.0f).toFloat(), 800.0f / 600.0f, 0.1f, 100.0f)
+        
+        val modelLoc = glGetUniformLocation(shaderProgram.ID, "model")
+        val viewLoc = glGetUniformLocation(shaderProgram.ID, "view")
+        val projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection")
 
-        shaderProgram.use()
-        val transformLoc = glGetUniformLocation(shaderProgram.ID, "transform")
-        glUniformMatrix4fv(transformLoc, false, trans.get(BufferUtils.createFloatBuffer(16)))
+        glUniformMatrix4fv(modelLoc, false, model.get(BufferUtils.createFloatBuffer(16)))
+        glUniformMatrix4fv(viewLoc, false, view.get(BufferUtils.createFloatBuffer(16)))
+        glUniformMatrix4fv(projectionLoc, false, projection.get(BufferUtils.createFloatBuffer(16)))
 
         // draw our first triangle
         glBindVertexArray(vao);

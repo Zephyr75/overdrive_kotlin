@@ -57,6 +57,10 @@ class Shader(vertexPath: String, fragmentPath: String) {
         glUniform1f(glGetUniformLocation(ID, name), value)
     }
 
+    fun setMat4(name: String, value: FloatArray) {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name), false, value)
+    }
+
     private fun readFile(path: String): String? {
         val sb = StringBuilder()
         try {
