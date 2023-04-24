@@ -263,7 +263,7 @@ fun main(args: Array<String>) {
 
         // create transformations
         val projection = Matrix4f().identity()
-        projection.perspective(Math.toRadians(45.0f).toFloat(), 800.0f / 600.0f, 0.1f, 100.0f)
+        projection.perspective(Math.toRadians(cam.zoom).toFloat(), 800.0f / 600.0f, 0.1f, 100.0f)
         val projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection")
         glUniformMatrix4fv(projectionLoc, false, projection.get(BufferUtils.createFloatBuffer(16)))
 

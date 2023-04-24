@@ -84,13 +84,13 @@ class Camera {
     }
 
     fun processMouseScroll(yOffset: Float) {
-        var zoom = this.zoom - yOffset
-        if (zoom < 1.0f)
-            zoom = 1.0f
-        if (zoom > 45.0f)
-            zoom = 45.0f
+        var temp = this.zoom - yOffset
+        if (temp < 1.0f)
+            temp = 1.0f
+        if (temp > 45.0f)
+            temp = 45.0f
 
-        this.zoom = zoom
+        this.zoom = temp
 
         updateCameraVectors()
     }
