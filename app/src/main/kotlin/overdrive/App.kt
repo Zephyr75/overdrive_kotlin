@@ -43,24 +43,21 @@ fun main(args: Array<String>) {
         throw RuntimeException("Failed to create the GLFW window")
     }
 
-    // set up callback for window resizing
-    glfwSetFramebufferSizeCallback(window) { _, width, height -> glViewport(0, 0, width, height) }
-
+    // set up callbacks
+    glfwSetFramebufferSizeCallback(window) { _, width, height -> glViewport(0, 0, width, height) } // window resizing
     glfwSetCursorPosCallback(window) { _, xpos, ypos -> 
         val (newFirst, newLastX, newLastY) = callbackMouseMovement(xpos, ypos, cam, first, lastX.toDouble(), lastY.toDouble()) 
         first = newFirst; lastX = newLastX; lastY = newLastY
-    }
-    glfwSetScrollCallback(window) { _, _, yoffset -> callbackMouseScroll(yoffset, cam) }
-
+    } // mouse movement
+    glfwSetScrollCallback(window) { _, _, yoffset -> callbackMouseScroll(yoffset, cam) } // mouse scroll
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
 
-
+    // set glfw context
     glfwMakeContextCurrent(window)
-    // TODO remove this
     glfwSwapInterval(1)
-
     GL.createCapabilities()
 
+    // enable z-buffer
     glEnable(GL_DEPTH_TEST);
 
     // build and compile our shader program
@@ -114,6 +111,7 @@ fun main(args: Array<String>) {
     val indices = intArrayOf(
         0, 1, 2, // first triangle
         2, 3, 0  // second triangle
+
     )
 
     val cubePositions = arrayOf(
@@ -129,18 +127,19 @@ fun main(args: Array<String>) {
         Vector3f(-1.3f,  1.0f, -1.5f),
     )
 
-    // set up vertex buffers and configure vertex attributes
+    // set up vertex array object
     val vao = glGenVertexArrays()
     glBindVertexArray(vao)
 
+    // set up vertex buffer object
     val vbo = glGenBuffers()
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
     glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
-
-    // val ebo = glGenBuffers()
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
+    // set up element buffer object
+    val ebo = glGenBuffers()
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
     // configure vertex attributes
     glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * FLOAT_SIZE, 0)
@@ -252,16 +251,8 @@ fun main(args: Array<String>) {
             model.rotate(Math.toRadians(angle.toDouble()).toFloat(), Vector3f(1.0f, 0.3f, 0.5f))
             glUniformMatrix4fv(modelLoc, false, model.get(BufferUtils.createFloatBuffer(16)))
 
-            glDrawArrays(GL_TRIANGLES, 0, 36)
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0)
         }
-
-
-
-
-        // // draw our first triangle
-        // glBindVertexArray(vao);
-        // // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        // glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // swap buffers and poll IO events
         glfwSwapBuffers(window);
