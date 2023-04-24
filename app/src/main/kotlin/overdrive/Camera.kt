@@ -62,6 +62,8 @@ class Camera {
             CameraMovement.LEFT -> position.sub(right.mul(velocity))
             CameraMovement.RIGHT -> position.add(right.mul(velocity))
         }
+        
+        updateCameraVectors()
     }
 
     fun processMouseMovement(xOffset: Float, yOffset: Float, constrainPitch: Boolean = true) {
@@ -89,6 +91,8 @@ class Camera {
             zoom = 45.0f
 
         this.zoom = zoom
+
+        updateCameraVectors()
     }
   
 
