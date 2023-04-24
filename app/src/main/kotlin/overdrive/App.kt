@@ -14,32 +14,29 @@ import overdrive.render.*
 
 
 const val FLOAT_SIZE = 4
+const val WIDTH = 800.0f
+const val HEIGHT = 600.0f
 
 val cam = Camera()
-var lastX = 800.0f / 2.0f
-var lastY = 600.0f / 2.0f
+var lastX = WIDTH / 2.0f
+var lastY = HEIGHT / 2.0f
 var first = true
 
 var deltaTime = 0.0f
 var lastFrame = 0.0f
 
 fun main(args: Array<String>) {
+    // glfw setup
     println("LWJGL version: " + Version.getVersion())
-
-    // TODO remove this
     glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err))
-
     if (!glfwInit()) {
         throw IllegalStateException("Unable to initialize GLFW")
     }
-
     glfwDefaultWindowHints()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-
-    // fix compilation on macOS
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE)
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) // fix compilation on macOS
 
     val window = glfwCreateWindow(800, 600, "Overdrive", NULL, NULL)
     if (window == NULL) {
@@ -49,7 +46,10 @@ fun main(args: Array<String>) {
     // set up callback for window resizing
     glfwSetFramebufferSizeCallback(window) { _, width, height -> glViewport(0, 0, width, height) }
 
-    // glfwSetCursorPosCallback(window) { _, xpos, ypos -> (first, lastX, lastY) = callbackMouseMovement(xpos, ypos, cam, first, lastX, lastY) } 
+    glfwSetCursorPosCallback(window) { _, xpos, ypos -> 
+        val (newFirst, newLastX, newLastY) = callbackMouseMovement(xpos, ypos, cam, first, lastX.toDouble(), lastY.toDouble()) 
+        first = newFirst; lastX = newLastX; lastY = newLastY
+    }
     glfwSetScrollCallback(window) { _, _, yoffset -> callbackMouseScroll(yoffset, cam) }
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
@@ -229,7 +229,7 @@ fun main(args: Array<String>) {
 
         // create transformations
         val projection = Matrix4f().identity()
-        projection.perspective(Math.toRadians(cam.zoom).toFloat(), 800.0f / 600.0f, 0.1f, 100.0f)
+        projection.perspective(Math.toRadians(cam.zoom).toFloat(), WIDTH / HEIGHT, 0.1f, 100.0f)
         val projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection")
         glUniformMatrix4fv(projectionLoc, false, projection.get(BufferUtils.createFloatBuffer(16)))
 
@@ -268,14 +268,7 @@ fun main(args: Array<String>) {
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    // glDeleteVertexArrays(1, &VAO);
-    // glDeleteBuffers(1, &VBO);
-    // glDeleteBuffers(1, &EBO);
-
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
+    // clear all previously allocated GLFW resources.
     glfwTerminate();
 }
 

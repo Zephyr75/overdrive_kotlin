@@ -34,7 +34,7 @@ fun processKeyboardInputs(window: Long, cam: Camera, deltaTime: Float) {
     }
 }
 
-fun callbackMouseMovement(xpos: Double, ypos: Double, cam: Camera, first: Boolean, lastX: Double, lastY: Double) : Triple<Boolean, Double, Double> {
+fun callbackMouseMovement(xpos: Double, ypos: Double, cam: Camera, first: Boolean, lastX: Double, lastY: Double) : Triple<Boolean, Float, Float> {
     var newX = lastX
     var newY = lastY
 
@@ -51,7 +51,7 @@ fun callbackMouseMovement(xpos: Double, ypos: Double, cam: Camera, first: Boolea
 
     cam.processMouseMovement(xoffset, yoffset)
 
-    return Triple(false, newX, newY)
+    return Triple(false, newX.toFloat(), newY.toFloat())
 }
 
 fun callbackMouseScroll(yoffset: Double, cam: Camera) {
