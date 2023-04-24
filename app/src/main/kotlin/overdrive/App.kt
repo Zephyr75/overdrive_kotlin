@@ -10,9 +10,7 @@ import org.lwjgl.system.MemoryUtil.NULL
 import org.lwjgl.BufferUtils
 import org.lwjgl.stb.*
 import org.joml.*
-import overdrive.Shader.*
-import overdrive.Camera.*
-import java.util.Vector
+import overdrive.render.*
 
 
 const val FLOAT_SIZE = 4
@@ -20,51 +18,10 @@ const val FLOAT_SIZE = 4
 val cam = Camera()
 var lastX = 800.0f / 2.0f
 var lastY = 600.0f / 2.0f
-var firstMouse = true
+var first = true
 
 var deltaTime = 0.0f
 var lastFrame = 0.0f
-
-// check for input events in GLFW and process them
-fun processInput(window: Long) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true)
-    }
-    
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        cam.processKeyboard(CameraMovement.FORWARD, deltaTime)
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        cam.processKeyboard(CameraMovement.BACKWARD, deltaTime)
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        cam.processKeyboard(CameraMovement.LEFT, deltaTime)
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        cam.processKeyboard(CameraMovement.RIGHT, deltaTime)
-    }
-}
-
-fun mouseCallback(window: Long, xpos: Double, ypos: Double) {
-    if (firstMouse) {
-        lastX = xpos.toFloat()
-        lastY = ypos.toFloat()
-        firstMouse = false
-    }
-
-    var xoffset = xpos.toFloat() - lastX
-    var yoffset = lastY - ypos.toFloat() // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos.toFloat()
-    lastY = ypos.toFloat()
-
-    cam.processMouseMovement(xoffset, yoffset)
-}
-
-fun scrollCallback(window: Long, xoffset: Double, yoffset: Double) {
-    cam.processMouseScroll(yoffset.toFloat())
-}
-
 
 fun main(args: Array<String>) {
     println("LWJGL version: " + Version.getVersion())
@@ -92,8 +49,8 @@ fun main(args: Array<String>) {
     // set up callback for window resizing
     glfwSetFramebufferSizeCallback(window) { _, width, height -> glViewport(0, 0, width, height) }
 
-    glfwSetCursorPosCallback(window, ::mouseCallback)
-    glfwSetScrollCallback(window, ::scrollCallback)
+    // glfwSetCursorPosCallback(window) { _, xpos, ypos -> (first, lastX, lastY) = callbackMouseMovement(xpos, ypos, cam, first, lastX, lastY) } 
+    glfwSetScrollCallback(window) { _, _, yoffset -> callbackMouseScroll(yoffset, cam) }
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
 
@@ -107,7 +64,7 @@ fun main(args: Array<String>) {
     glEnable(GL_DEPTH_TEST);
 
     // build and compile our shader program
-    val shaderProgram = Shader("src/main/resources/shaders/simple.vert.glsl", "src/main/resources/shaders/simple.frag.glsl") 
+    val shaderProgram = Shader("src/main/resources/shaders/light.vert.glsl", "src/main/resources/shaders/light.frag.glsl") 
 
     // set up vertex data
     val vertices = floatArrayOf(
@@ -180,6 +137,7 @@ fun main(args: Array<String>) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
     glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
+
     // val ebo = glGenBuffers()
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
@@ -193,6 +151,14 @@ fun main(args: Array<String>) {
 
     // glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * FLOAT_SIZE, 24)
     // glEnableVertexAttribArray(2)
+
+    val lightVao = glGenVertexArrays()
+    glBindVertexArray(lightVao)
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo)
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * FLOAT_SIZE, 0)
+    glEnableVertexAttribArray(0)
+
 
     // load and create a texture
     val texture1 = glGenTextures()
@@ -246,7 +212,7 @@ fun main(args: Array<String>) {
         lastFrame = currentFrame.toFloat()
 
         // input
-        processInput(window);
+        processKeyboardInputs(window);
 
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

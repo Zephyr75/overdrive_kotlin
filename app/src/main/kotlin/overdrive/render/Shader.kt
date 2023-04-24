@@ -1,4 +1,4 @@
-package overdrive
+package overdrive.render
 
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20.*

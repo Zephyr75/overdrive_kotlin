@@ -1,4 +1,4 @@
-package overdrive
+package overdrive.render
 
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -66,19 +66,19 @@ class Camera {
         updateCameraVectors()
     }
 
-    fun processMouseMovement(xOffset: Float, yOffset: Float, constrainPitch: Boolean = true) {
+    fun processMouseMovement(xOffset: Double, yOffset: Double, constrainPitch: Boolean = true) {
         var yaw = this.yaw + xOffset * mouseSensitivity
         var pitch = this.pitch + yOffset * mouseSensitivity
 
         if (constrainPitch) {
-            if (pitch > 89.0f)
-                pitch = 89.0f
-            if (pitch < -89.0f)
-                pitch = -89.0f
+            if (pitch > 89.0)
+                pitch = 89.0
+            if (pitch < -89.0)
+                pitch = -89.0
         }
 
-        this.yaw = yaw
-        this.pitch = pitch
+        this.yaw = yaw.toFloat() 
+        this.pitch = pitch.toFloat()
 
         updateCameraVectors()
     }
