@@ -11,10 +11,13 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.stb.*
 import org.joml.*
 import overdrive.Shader.*
+import overdrive.Camera.*
 import java.util.Vector
 
 
 const val FLOAT_SIZE = 4
+
+val cam = Camera()
 
 // check for input events in GLFW and process them
 fun processInput(window: Long) {
@@ -207,20 +210,17 @@ fun main(args: Array<String>) {
         shaderProgram.use()
 
         // create transformations
-        // val model = Matrix4f().identity()
-        val view = Matrix4f().identity()
         val projection = Matrix4f().identity()
-        // model.rotate(-Math.toRadians(55.0f).toFloat(), Vector3f(1.0f, 0.0f, 0.0f))
-        view.translate(Vector3f(0.0f, 0.0f, -3.0f))
         projection.perspective(Math.toRadians(45.0f).toFloat(), 800.0f / 600.0f, 0.1f, 100.0f)
+        val projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection")
+        glUniformMatrix4fv(projectionLoc, false, projection.get(BufferUtils.createFloatBuffer(16)))
+
+        val view = cam.getViewMatrix()
+        val viewLoc = glGetUniformLocation(shaderProgram.ID, "view")
+        glUniformMatrix4fv(viewLoc, false, view.get(BufferUtils.createFloatBuffer(16)))
         
         val modelLoc = glGetUniformLocation(shaderProgram.ID, "model")
-        val viewLoc = glGetUniformLocation(shaderProgram.ID, "view")
-        val projectionLoc = glGetUniformLocation(shaderProgram.ID, "projection")
 
-        // glUniformMatrix4fv(modelLoc, false, model.get(BufferUtils.createFloatBuffer(16)))
-        glUniformMatrix4fv(viewLoc, false, view.get(BufferUtils.createFloatBuffer(16)))
-        glUniformMatrix4fv(projectionLoc, false, projection.get(BufferUtils.createFloatBuffer(16)))
 
 
         // render boxes
