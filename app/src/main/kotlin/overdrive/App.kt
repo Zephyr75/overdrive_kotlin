@@ -212,7 +212,7 @@ fun main(args: Array<String>) {
         lastFrame = currentFrame.toFloat()
 
         // input
-        processKeyboardInputs(window);
+        processKeyboardInputs(window, cam, deltaTime)
 
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
