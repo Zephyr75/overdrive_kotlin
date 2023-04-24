@@ -18,13 +18,53 @@ import java.util.Vector
 const val FLOAT_SIZE = 4
 
 val cam = Camera()
+var lastX = 800.0f / 2.0f
+var lastY = 600.0f / 2.0f
+var firstMouse = true
+
+var deltaTime = 0.0f
+var lastFrame = 0.0f
 
 // check for input events in GLFW and process them
 fun processInput(window: Long) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true)
     }
+    
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        cam.processKeyboard(CameraMovement.FORWARD, deltaTime)
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        cam.processKeyboard(CameraMovement.BACKWARD, deltaTime)
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        cam.processKeyboard(CameraMovement.LEFT, deltaTime)
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        cam.processKeyboard(CameraMovement.RIGHT, deltaTime)
+    }
 }
+
+fun mouseCallback(window: Long, xpos: Double, ypos: Double) {
+    if (firstMouse) {
+        lastX = xpos.toFloat()
+        lastY = ypos.toFloat()
+        firstMouse = false
+    }
+
+    var xoffset = xpos.toFloat() - lastX
+    var yoffset = lastY - ypos.toFloat() // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos.toFloat()
+    lastY = ypos.toFloat()
+
+    cam.processMouseMovement(xoffset, yoffset)
+}
+
+fun scrollCallback(window: Long, xoffset: Double, yoffset: Double) {
+    cam.processMouseScroll(yoffset.toFloat())
+}
+
 
 fun main(args: Array<String>) {
     println("LWJGL version: " + Version.getVersion())
@@ -51,6 +91,12 @@ fun main(args: Array<String>) {
 
     // set up callback for window resizing
     glfwSetFramebufferSizeCallback(window) { _, width, height -> glViewport(0, 0, width, height) }
+
+    glfwSetCursorPosCallback(window, ::mouseCallback)
+    glfwSetScrollCallback(window, ::scrollCallback)
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+
 
     glfwMakeContextCurrent(window)
     // TODO remove this
@@ -193,6 +239,12 @@ fun main(args: Array<String>) {
     // render loop
     while (!glfwWindowShouldClose(window))
     {
+        
+        // per-frame time logic
+        var currentFrame = glfwGetTime()
+        deltaTime = (currentFrame - lastFrame).toFloat()
+        lastFrame = currentFrame.toFloat()
+
         // input
         processInput(window);
 

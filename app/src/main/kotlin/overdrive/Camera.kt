@@ -53,6 +53,43 @@ class Camera {
         right = this.front.cross(worldUp, Vector3f()).normalize()
         up = right.cross(this.front, Vector3f()).normalize()
     }
+
+    fun processKeyboard(direction: CameraMovement, deltaTime: Float) {
+        val velocity = movementSpeed * deltaTime
+        when (direction) {
+            CameraMovement.FORWARD -> position.add(front.mul(velocity))
+            CameraMovement.BACKWARD -> position.sub(front.mul(velocity))
+            CameraMovement.LEFT -> position.sub(right.mul(velocity))
+            CameraMovement.RIGHT -> position.add(right.mul(velocity))
+        }
+    }
+
+    fun processMouseMovement(xOffset: Float, yOffset: Float, constrainPitch: Boolean = true) {
+        var yaw = this.yaw + xOffset * mouseSensitivity
+        var pitch = this.pitch + yOffset * mouseSensitivity
+
+        if (constrainPitch) {
+            if (pitch > 89.0f)
+                pitch = 89.0f
+            if (pitch < -89.0f)
+                pitch = -89.0f
+        }
+
+        this.yaw = yaw
+        this.pitch = pitch
+
+        updateCameraVectors()
+    }
+
+    fun processMouseScroll(yOffset: Float) {
+        var zoom = this.zoom - yOffset
+        if (zoom < 1.0f)
+            zoom = 1.0f
+        if (zoom > 45.0f)
+            zoom = 45.0f
+
+        this.zoom = zoom
+    }
   
 
 }
