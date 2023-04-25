@@ -12,6 +12,8 @@ import org.lwjgl.stb.*
 import org.joml.*
 
 
+const val FLOAT_SIZE = 4
+
 data class Vertex(val position: Vector3f, val normal: Vector3f, val uv: Vector2f, val tangent: Vector3f, val bitangent: Vector3f, val boneIndices: IntArray, val boneWeights: FloatArray)
 
 data class Texture(val id: Int, val type: String, val path: String)
@@ -32,31 +34,59 @@ class Mesh(val vertices: Array<Vertex>, val indices: IntArray, val textures: Arr
 
         // Load data into vertex buffers
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+        var unfoldedVertices = arrayOf<Float>()
+        for (vertex in vertices) {
+            unfoldedVertices += vertex.position.x
+            unfoldedVertices += vertex.position.y
+            unfoldedVertices += vertex.position.z
+            unfoldedVertices += vertex.normal.x
+            unfoldedVertices += vertex.normal.y
+            unfoldedVertices += vertex.normal.z
+            unfoldedVertices += vertex.uv.x
+            unfoldedVertices += vertex.uv.y
+            unfoldedVertices += vertex.tangent.x
+            unfoldedVertices += vertex.tangent.y
+            unfoldedVertices += vertex.tangent.z
+            unfoldedVertices += vertex.bitangent.x
+            unfoldedVertices += vertex.bitangent.y
+            unfoldedVertices += vertex.bitangent.z
+            unfoldedVertices += vertex.boneIndices[0].toFloat()
+            unfoldedVertices += vertex.boneIndices[1].toFloat()
+            unfoldedVertices += vertex.boneIndices[2].toFloat()
+            unfoldedVertices += vertex.boneIndices[3].toFloat()
+            unfoldedVertices += vertex.boneWeights[0]
+            unfoldedVertices += vertex.boneWeights[1]
+            unfoldedVertices += vertex.boneWeights[2]
+            unfoldedVertices += vertex.boneWeights[3]
+        }
+
+        glBufferData(GL_ARRAY_BUFFER, unfoldedVertices, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
         // Vertex positions
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, Vertex.SIZE, 0)
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 11 * FLOAT_SIZE, 0) 
         glEnableVertexAttribArray(0)
         // Vertex normals
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, Vertex.SIZE, 3 * 4)
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 11 * FLOAT_SIZE, 3 * FLOAT_SIZE )
         glEnableVertexAttribArray(1)
         // Vertex texture coords
-        glVertexAttribPointer(2, 2, GL_FLOAT, false, Vertex.SIZE, 6 * 4)
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, 11 * FLOAT_SIZE, 6 * FLOAT_SIZE)
         glEnableVertexAttribArray(2)
         // Vertex tangent
-        glVertexAttribPointer(3, 3, GL_FLOAT, false, Vertex.SIZE, 8 * 4)
+        glVertexAttribPointer(3, 3, GL_FLOAT, false, 11 * FLOAT_SIZE, 8 * FLOAT_SIZE)
         glEnableVertexAttribArray(3)
         // Vertex bitangent
-        glVertexAttribPointer(4, 3, GL_FLOAT, false, Vertex.SIZE, 11 * 4)
+        glVertexAttribPointer(4, 3, GL_FLOAT, false, 11 * FLOAT_SIZE, 11 * FLOAT_SIZE)
         glEnableVertexAttribArray(4)
         // Vertex bone indices
-        glVertexAttribPointer(5, 4, GL_FLOAT, false, Vertex.SIZE, 14 * 4)
+        glVertexAttribPointer(5, 4, GL_FLOAT, false, 11 * FLOAT_SIZE, 14 * FLOAT_SIZE)
         glEnableVertexAttribArray(5)
         // Vertex bone weights
-        glVertexAttribPointer(6, 4, GL_FLOAT, false, Vertex.SIZE, 18 * 4)
+        glVertexAttribPointer(6, 4, GL_FLOAT, false, 11 * FLOAT_SIZE, 18 * FLOAT_SIZE)
         glEnableVertexAttribArray(6)
+
+
         
         // Unbind the Vertex Array Object
         glBindVertexArray(0)
@@ -70,7 +100,7 @@ class Mesh(val vertices: Array<Vertex>, val indices: IntArray, val textures: Arr
         var heightNr = 1
         for (i in textures.indices) {
             // Activate proper texture unit before binding
-            glActiveTexture(GL_TEXTURE0 + i)
+            glActiveTexture(GL_TEXTURE0 + i) 
 
             // Retrieve texture number (the N in diffuse_textureN)
             val number: String
@@ -105,8 +135,10 @@ class Mesh(val vertices: Array<Vertex>, val indices: IntArray, val textures: Arr
         glDrawElements(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0)
         glBindVertexArray(0)
 
-        // Always good practice to set everything back to defaults once configured.
+        // Set everything back to defaults once configured
         glActiveTexture(GL_TEXTURE0)
-    }        
+    }
+
+
         
-}   
+        
